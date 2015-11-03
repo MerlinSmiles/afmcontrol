@@ -184,13 +184,13 @@ void ParseScript()
 		// LithoPause(0.00000000001);
 		if (cmd[0] == "xyAbs")
 		{
-			double x, y, rate;
+			double x, y, r;
 			x = stod(cmd[1]);
 			y = stod(cmd[2]);
-			rate = stod(cmd[3]);
+			r = stod(cmd[3]);
 			//line >> x >> y >> rate;       //now read the whitespace-separated floats
 			 //std::cout << "  moving to x: " << x <<"   y: " <<y <<std::endl;
-			LithoTranslateAbsolute(x,y,rate);
+			LithoTranslateAbsolute(x,y,r);
 			//std::cout << cmd << ":" << x << " " << y << " " << rate << std::endl;
 
 		}
@@ -282,14 +282,16 @@ void ParseScript()
 		}
 		else if (cmd[0] == "SketchScript")
 		{
+			//continue;
 			//std::cout << cmd[0] << cmd[1] << std::endl;
 			/*std::string rest;
 			std::getline(line, rest);*/
 		}
 		else if (cmd[0] == "#")
 		{
-			std::string rest;
-			std::getline(line, rest);
+			//continue;
+			/*std::string rest;
+			std::getline(line, rest);*/
 			//std::cout << "comment " << cmd[0] << ":" << rest << std::endl;
 		}
 		else

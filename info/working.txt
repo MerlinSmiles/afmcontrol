@@ -1,0 +1,41 @@
+	ShowMessage("test message 1", "Test message 2" );
+	EraseMessage();
+	GetEngageStatus
+	
+	std::cout << "GetIntegralGain " << GetIntegralGain() << std::endl;
+	std::cout << "GetSamplesPerLine " << GetSamplesPerLine() << std::endl;
+	std::cout << "GetScanAngle " << GetScanAngle() << std::endl;
+	std::cout << "GetScanLines " << GetScanLines() << std::endl;
+	std::cout << "GetScanRate " << GetScanRate() << std::endl;
+	std::cout << "GetSetpoint " << GetSetpoint() << std::endl;
+
+	std::cout << "GetXOffset " << GetXOffset() << std::endl;
+	std::cout << "GetYOffset " << GetYOffset() << std::endl;
+	std::cout << "IsCaptureDone " << IsCaptureDone() << std::endl;
+	std::cout << "IsEngaged " << IsEngaged() << std::endl;
+	std::cout << "IsRealTime " << IsRealTime() << std::endl;
+	std::cout << "IsTappingMode " << IsTappingMode() << std::endl;
+	std::cout << "IsTipExchange " << IsTipExchange() << std::endl;
+
+	
+	
+	std::cout << "GetIntegralGain " << GetIntegralGain() << std::endl;
+
+	SetIntegralGain(1.333);
+	std::cout << "GetIntegralGain " << GetIntegralGain() << std::endl;
+
+	
+	SetInterleaveMode(true);
+	
+	SetAFMMode(AFMMode(1));  // 0 = CONTACT 1= TAPPING
+
+	
+
+	DoZoomIn();
+	DoZoomOut();
+	Capture(0,CaptureFlags(0)); // Sets Capture to On
+
+
+	std::cout << "StageGetPosition " << StageGetPosition(0) <<std::endl; //X
+	std::cout << "StageGetPosition " << StageGetPosition(1) <<std::endl; //Y
+	std::cout << "StageGetPosition " << StageGetPosition(2) <<std::endl; //Z
