@@ -16,7 +16,7 @@
 #include <fstream>      // std::ifstream
 #include <sstream>
 #include "my_globals.h"
-
+ 
 void DeleteContent(LPTSTR);
 bool CheckAbort(LPTSTR);
 bool RefreshDirectory(LPTSTR);

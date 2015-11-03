@@ -2,7 +2,7 @@
 #include <guimfc.h>
 
 //#include <winsock2.h>
-
+ 
 #include <windows.h>
 #include <direct.h>
 #include <stdlib.h>

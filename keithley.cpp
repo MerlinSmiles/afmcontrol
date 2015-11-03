@@ -15,7 +15,7 @@
 #define TIMEOUT T1s // Timeout value = 1 seconds
 #define EOTMODE 1 // Enable the END message
 #define EOSMODE 0 // Disable the EOS mode
-
+ 
 int initKeithley(void);
 int GPIBWrite(int ud, char* cmd);
 int GPIBRead(int ud, char* message);
