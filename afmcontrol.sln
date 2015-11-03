@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lithocontrol", "lithocontrol.vcxproj", "{53BAD68A-8DBA-FF3E-B077-6DC83E6C0880}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "afmcontrol", "afmcontrol.vcxproj", "{53BAD68A-8DBA-FF3E-B077-6DC83E6C0880}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

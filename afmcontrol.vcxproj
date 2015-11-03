@@ -89,8 +89,8 @@
     <Library Include="D:\INCLUDE\Z.lib" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\lithography\lithocontrol_bak\my_globals.h" />
-    <ClInclude Include="..\..\lithography\lithocontrol_bak\my_winsock.h" />
+    <ClInclude Include=".\my_globals.h" />
+    <ClInclude Include=".\my_winsock.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

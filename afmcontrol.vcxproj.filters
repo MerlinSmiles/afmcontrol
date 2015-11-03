@@ -36,10 +36,10 @@
     </Library>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\lithography\lithocontrol_bak\my_globals.h">
+    <ClInclude Include=".\my_globals.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\lithography\lithocontrol_bak\my_winsock.h">
+    <ClInclude Include=".\my_winsock.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
   </ItemGroup>
