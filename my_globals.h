@@ -14,6 +14,8 @@
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
 #include <sstream>
+#include <vector>
+#include <cctype>
 
 //Prototypen
 extern int initWinsock(void);
@@ -49,3 +51,8 @@ extern int KeithSetVoltage( double );
 
 extern char scriptbuf[1024*1024];
 extern int scriptbuflen;
+
+//extern std::vector<std::string> split(const std::string &s, char delim);
+
+template<typename C>
+extern void split(std::string const&, char const*, C&);

@@ -20,6 +20,7 @@
 #include <fstream>      // std::ifstream
 #include <sstream>
 #include <vector>
+#include <cctype>
 
 using namespace std;
 
@@ -40,22 +41,28 @@ char scriptbuf[1024*1024];
 int scriptbuflen = 1024*1024;
 
 
-std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-		if (!item.empty()) elems.push_back(item);
-        //elems.push_back(item);
-    }
-    return elems;
-}
- 
-
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, elems);
-    return elems;
-}
+//std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
+//    std::stringstream ss(s);
+//    std::string item;
+//    while (std::getline(ss, item, delim)) {
+//		/*while(std::isspace(*item.begin()))
+//			item.erase(item.begin());
+//
+//		while(std::isspace(*item.rbegin()))
+//			item.erase(item.length()-1);*/
+//
+//		if (!item.empty()) elems.push_back(item);
+//        //elems.push_back(item);
+//    }
+//    return elems;
+//}
+// 
+//
+//std::vector<std::string> split(const std::string &s, char delim) {
+//    std::vector<std::string> elems;
+//    split(s, delim, elems);
+//    return elems;
+//}
 
 
 
@@ -145,7 +152,7 @@ int readWinsock(void)
 		// Beep( 750,200 );
 		for(int i = 900 ; i < 1900; i+= 500)
 		{
-			Beep(i,100);
+			Beep(i,50);
 		}
 		writeWinsock("Ready");
 		rc = recv(connectedSocket, scriptbuf, scriptbuflen, 0);
@@ -164,8 +171,11 @@ int readWinsock(void)
 		std::istringstream line(scriptbuf);      //make a stream for the line itself
 		std::string str;
 		getline (line,str);
-		 
-		std::vector<std::string> cmd = split(str, ' ');
+		
+		char const* delims = " \t";
+		vector<std::string> cmd;
+		split(str, delims, cmd);
+
 		
 		if (cmd[0] == "SketchScript")
 		{
@@ -182,7 +192,7 @@ int readWinsock(void)
 			return 1;
 		} else if (cmd[0] == "shutdown")
 		{
-			std::cout << "\n\n\n SHUTDOWN\n\n\n" << std::endl;
+			std::cout << "\n\nSHUTDOWN\n" << std::endl;
 			return 2;
 		} else if (cmd[0] == "StageUnload")
 		{

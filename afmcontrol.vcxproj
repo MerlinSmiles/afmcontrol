@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="afmcontrol.cpp" />
     <ClCompile Include="keithley.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="winsock.cpp" />

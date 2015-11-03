@@ -24,6 +24,9 @@
     <ClCompile Include="keithley.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="afmcontrol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Object Include="C:\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\lib32\msvc\gpib-32.obj">

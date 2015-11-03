@@ -15,7 +15,12 @@
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
 #include <sstream>
+#include <string>
+#include <vector>
+#include <bitset>
+#include <iostream>
 #include "my_globals.h"
+using namespace std;
  
 void DeleteContent(LPTSTR);
 bool CheckAbort(LPTSTR);
@@ -31,98 +36,58 @@ int closeWinsock(void);
 int connectWinsock(void);
 int readWinsock(void);
 //int writeWinsock(std::string);
-void StageUnload( void );
-void StageLoad( void );
-void DoCaptureDown( void );
-void DoCaptureUp( void );
-void DoEngage( void );
-void DoWithdraw( void );
+template<typename C>
+void split(string const&, char const*, C&);
+
 
 long rc;
 SOCKET acceptSocket;
 SOCKET connectedSocket;
 SOCKADDR_IN addr;
 
+
+template<typename C>
+void split(string const& s, char const* d, C& ret)
+{
+  C output;
+
+  bitset<255> delims;
+  while( *d )
+  {
+    unsigned char code = *d++;
+    delims[code] = true;
+  }
+  typedef string::const_iterator iter;
+  iter beg;
+  bool in_token = false;
+  for( string::const_iterator it = s.begin(), end = s.end();
+    it != end; ++it )
+  {
+    if( delims[*it] )
+    {
+      if( in_token )
+      {
+        output.push_back(typename C::value_type(beg, it));
+        in_token = false;
+      }
+    }
+    else if( !in_token )
+    {
+      beg = it;
+      in_token = true;
+    }
+  }
+  if( in_token )
+    output.push_back(typename C::value_type(beg, s.end()));
+  output.swap(ret);
+}
+
+
+
+
 // Server function.
 
-void DoEngage( void)
-{
-	
-	bool stat = IsEngaged();
-	if (stat == 0)
-	{
-		Engage();
-	}
-}
-
-void DoWithdraw( void)
-{
-	bool stat = IsEngaged();
-	if (stat == 1)
-	{
-		Withdraw();
-	}
-}
-
-void DoCaptureUp( void)
-{
-	
-	bool stat = IsEngaged();
-	if (stat == 0)
-	{
-		Engage();
-	}
-	FrameUp();
-	stat = LithoIsScanning();
-	if (stat == 0)
-	{
-		LithoScan(1);
-	}
-	
-	Capture(0,CaptureFlags(0));
-	
-	WaitForCapture();
-	LithoScan(0);
-}
-
-void DoCaptureDown( void)
-{
-	
-	bool stat = IsEngaged();
-	if (stat == 0)
-	{
-		Engage();
-	}
-	FrameDown();
-	stat = LithoIsScanning();
-	if (stat == 0)
-	{
-		LithoScan(1);
-	}
-	
-	Capture(0,CaptureFlags(0));
-	
-	WaitForCapture();
-	LithoScan(0);
-}
-
-void StageUnload( void )
-{	
-	bool stat = IsEngaged();
-	
-	StageMoveSPM(1000,1);   // Z + is up
-	StageMoveAxis(1,-30000,1,0,50,0);  // y-axis - is unload
-
-	if (stat == 1)
-	{
-		Withdraw();
-	}
-}
-void StageLoad( void )
-{		
-	StageMoveAxis(1,30000,1,0,50,0);  // y-axis - is unload
-	StageMoveSPM(-500,1);   // Z + is up
-}
+//void InitStage(
 
 extern "C" __declspec(dllexport) int macroMain()
 {
@@ -130,45 +95,51 @@ extern "C" __declspec(dllexport) int macroMain()
 	
 	LITHO_BEGIN;
 	
+	std::cout << "1 StageGetPosition X: " << StageGetPosition(0) <<std::endl; //X
+	std::cout << "1 StageGetPosition Y: " << StageGetPosition(1) <<std::endl; //Y
+	std::cout << "1 StageGetPosition Z: " << StageGetPosition(2) <<std::endl; //Z
+
+
+	if (1) {
+		LithoDisplayStatusBox();
 	
-	LithoDisplayStatusBox();
-	
-	bool stat = IsEngaged();
-	if (stat == 1)
-	{
-		LithoScan(FALSE);
-	}
-	LithoCenterXY();
+		bool stat = IsEngaged();
+		if (stat == 1)
+		{
+			LithoScan(FALSE);
+		}
+		LithoCenterXY();
 		//LithoPause(0.00000000001);
 	
-	initWinsock();
-	startWinsock();
-	connectWinsock();
+		initWinsock();
+		startWinsock();
+		connectWinsock();
 
 
-	int ret = 0;
-	bool running = true;
-	while (running)
-	{
-		if (ret == 1)
+		int ret = 0;
+		bool running = true;
+		while (running)
 		{
-			connectWinsock();
-			//running = false;
-			//break;
-		} 
-		ret = readWinsock();
-		if (ret == 2)
-		{
-			running = false;
-			break;
+			if (ret == 1)
+			{
+				connectWinsock();
+				//running = false;
+				//break;
+			} 
+			ret = readWinsock();
+			if (ret == 2)
+			{
+				running = false;
+				break;
+			}
 		}
+
+
+		closeWinsock();
 	}
-
-
-	closeWinsock();
 	
 	LITHO_END;
-	std::cout  << std::endl << std::endl << std::endl << "END" << std::endl << std::endl;
+	std::cout  << std::endl << "END" << std::endl<< std::endl;
 	KeithSetVoltage( 0.0 );
 	return 0;
 }
@@ -181,123 +152,155 @@ void ParseScript()
 	printf("\nParsing Script...\n");
 	writeWinsock("\nParsing Script...\n");
 	printf("\n\n");
-
+/*
 	std::istringstream file(scriptbuf);
 	std::string fline;
+*/
+	
+	std::istringstream line(scriptbuf);      //make a stream for the line itself
+	std::string str;
+	
 
-	while (std::getline(file, fline))
+		
+	//if (cmd[0] == "SketchScript")
+
+	while (std::getline(line,str))
 	{
-		std::string cmd;
-		writeWinsock(fline);
+		//std::vector<std::string> cmd = split(str, '\t');
+		char const* delims = " \t";
 		
-		// std::getline(linestream, cmd, '\t');  // read up-to the first tab (discard tab).
-		std::istringstream line(fline);      //make a stream for the line itself
-		line >> cmd;                  //and read the first whitespace-separated token
-		
+		vector<std::string> cmd;
+		split(str, delims, cmd);
+		/*
+		std::cout << str <<":"<<std::endl;
+		std::cout << cmd.size() <<":"<<std::endl;*/
+		//std::string cmd;
+		writeWinsock(str);
+		if (cmd.size() == 0)
+		{
+			continue;
+		}
+		//std::cout << cmd[0] <<":"<<std::endl;
 		// LithoPause(0.00000000001);
-		if (cmd == "xyAbs")
+		if (cmd[0] == "xyAbs")
 		{
 			double x, y, rate;
-			line >> x >> y >> rate;       //now read the whitespace-separated floats
-			// std::cout << "  moving to x: " << x <<"   y: " <<y <<std::endl;
+			x = stod(cmd[1]);
+			y = stod(cmd[2]);
+			rate = stod(cmd[3]);
+			//line >> x >> y >> rate;       //now read the whitespace-separated floats
+			 //std::cout << "  moving to x: " << x <<"   y: " <<y <<std::endl;
 			LithoTranslateAbsolute(x,y,rate);
 			//std::cout << cmd << ":" << x << " " << y << " " << rate << std::endl;
 
 		}
-		else if (cmd == "xy")
+		else if (cmd[0] == "xy")
 		{
 			double x, y, rate;
-			line >> x >> y >> rate;       //now read the whitespace-separated floats
+			x = stod(cmd[1]);
+			y = stod(cmd[2]);
+			rate = stod(cmd[3]);
+			//line >> x >> y >> rate;       //now read the whitespace-separated floats
 			// std::cout << "  moving to x: " << x <<"   y: " <<y <<std::endl;
 			LithoTranslate(x,y,rate);
 			// std::cout << cmd << ":" << x << " " << y << " " << rate << std::endl;
 
 		}
-		else if (cmd == "vtip")
+		else if (cmd[0] == "vtip")
 		{
 			double vtip;
-			line >> vtip;       //now read the whitespace-separated floats
+			vtip = stod(cmd[1]);
+			//line >> vtip;       //now read the whitespace-separated floats
 			KeithSetVoltage(vtip);
 			//LithoSet(lsAna2, vtip);
 		}
-		else if (cmd == "trigger")
+		else if (cmd[0] == "trigger")
 		{
 			std::string chan;
-			line >> chan;       //now read the whitespace-separated floats
+			chan = cmd[1];
+			//line >> chan;       //now read the whitespace-separated floats
 
-			std::cout << cmd << ":" << chan << std::endl;
+			std::cout << cmd[0] << ":" << chan << std::endl;
 		}
-		else if (cmd == "pulse")
+		else if (cmd[0] == "pulse")
 		{
 			std::string chan, value, time;
-			line >> chan >> value >> time;       //now read the whitespace-separated floats
+			chan = cmd[1];
+			value = cmd[2];
+			time = cmd[3];
+			//line >> chan >> value >> time;       //now read the whitespace-separated floats
 
-			std::cout << cmd << ":" << chan << value << time << std::endl;
+			std::cout << cmd[0] << ":" << chan << value << time << std::endl;
 		}
-		else if (cmd == "signal")
+		else if (cmd[0] == "signal")
 		{
 			std::string chan, value;
-			line >> chan >> value;       //now read the whitespace-separated floats
+			chan = cmd[1];
+			value = cmd[2];
+			//line >> chan >> value;       //now read the whitespace-separated floats
 
-			std::cout << cmd << ":" << chan << value << std::endl;
+			std::cout << cmd[0] << ":" << chan << value << std::endl;
 		}
-		else if (cmd == "setpoint")
+		else if (cmd[0] == "setpoint")
 		{
 			double value;
-			line >> value;       //now read the whitespace-separated floats
+			value = stod(cmd[1]);
+			//line >> value;       //now read the whitespace-separated floats
 			
 			LithoSet(lsSetpoint, value);
-			std::cout << cmd << ":" << "Setpoint " << value << std::endl;
+			std::cout << cmd[0] << ":" << "Setpoint " << value << std::endl;
 		}
-		else if (cmd == "udp")
+		else if (cmd[0] == "udp")
 		{
-			std::string send;
-			std::getline(line, send);
-			std::cout << cmd << ":" << send << std::endl;
+			/*std::string send;
+			std::getline(line, send);*/
+			std::cout << cmd[0] << ":" << str << std::endl;
 		}
-		else if (cmd == "getxy")
+		else if (cmd[0] == "getxy")
 		{
 			double posX = LithoGetXPosUM();
 			double posY = LithoGetYPosUM();
-			std::cout << cmd << "   x: " << posX << "   y: " << posY << std::endl;
+			std::cout << cmd[0] << "   x: " << posX << "   y: " << posY << std::endl;
 		}
-		else if (cmd == "pause")
+		else if (cmd[0] == "pause")
 		{
 			double value;
-			line >> value;
+			value = stod(cmd[2]);
+			//line >> value;
 			LithoPause(value);
 		}
-		else if (cmd == "wait")
+		else if (cmd[0] == "wait")
 		{
 			// Here we need to wait for the scan to finish
 		}
-		else if (cmd == "center")
+		else if (cmd[0] == "center")
 		{
 			LithoCenterXY();
 			double posX = LithoGetXPosUM();
 			double posY = LithoGetYPosUM();
-			std::cout << cmd << "   x: " << posX << "   y: " << posY << std::endl;
+			std::cout << cmd[0] << "   x: " << posX << "   y: " << posY << std::endl;
 		}
-		else if (cmd == "SketchScript")
+		else if (cmd[0] == "SketchScript")
+		{
+			//std::cout << cmd[0] << cmd[1] << std::endl;
+			/*std::string rest;
+			std::getline(line, rest);*/
+		}
+		else if (cmd[0] == "#")
 		{
 			std::string rest;
 			std::getline(line, rest);
-		}
-		else if (cmd == "#")
-		{
-			std::string rest;
-			std::getline(line, rest);
-			//std::cout << "comment " << cmd << ":" << rest << std::endl;
+			//std::cout << "comment " << cmd[0] << ":" << rest << std::endl;
 		}
 		else
 		{
-			std::string rest;
-			std::getline(line, rest);
-			if (rest.empty()) {
+			//std::string rest;
+			//std::getline(line, rest);
+			if (str.empty()) {
 				// empty line
 			}
 			else {
-				std::cout << "unknown " << cmd << ":" << rest << std::endl;
+				std::cout << "unknown " << cmd[0] << ":" << str << std::endl;
 			}
 		}
 	}
