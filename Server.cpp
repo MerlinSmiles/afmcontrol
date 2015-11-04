@@ -19,6 +19,7 @@
 #include <vector>
 #include <bitset>
 #include <iostream>
+#include <conio.h>
 #include "my_globals.h"
 using namespace std;
  

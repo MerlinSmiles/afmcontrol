@@ -49,7 +49,7 @@ extern int KeithOn( void );
 extern int KeithOff( void );
 extern int KeithSetVoltage( double );
 
-extern char scriptbuf[1024*1024];
+extern char scriptbuf[1024*1024*10];
 extern int scriptbuflen;
 
 //extern std::vector<std::string> split(const std::string &s, char delim);

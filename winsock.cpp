@@ -2,7 +2,7 @@
 #include <guimfc.h>
 
 #include <winsock2.h>
-
+//#include <process.h>
 #include <windows.h>
 #include <direct.h>
 #include <stdlib.h>
@@ -37,8 +37,8 @@ void ParseFile(LPTSTR);
 
 
 
-char scriptbuf[1024*1024];
-int scriptbuflen = 1024*1024;
+char scriptbuf[1024*1024*10];
+int scriptbuflen = 1024*1024*10;
 
 
 //std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
@@ -125,7 +125,10 @@ int initWinsock()
 int connectWinsock(void)
 {
 	printf("\nWaiting for connection...\n");
-
+		//if(kbhit())
+  //      {
+  //          break;
+  //      }
 	// Wait for client
 	connectedSocket=accept(acceptSocket,NULL,NULL);
 	if(connectedSocket==INVALID_SOCKET)
