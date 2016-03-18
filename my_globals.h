@@ -23,6 +23,7 @@ extern int startWinsock(void);
 extern int closeWinsock(void);
 extern int connectWinsock(void);
 extern int readWinsock(void);
+extern int readAbort(void);
 extern int writeWinsock(std::string);
 extern void StageUnload( void );
 extern void StageLoad( void );
@@ -33,21 +34,26 @@ extern void DoWithdraw( void );
 extern void ParseScript( void );
 
 
+extern bool b_shutdown;
+extern bool b_abort;
+
 extern LPTSTR path;
 
 
 extern long rc;
-extern SOCKET acceptSocket;
+extern SOCKET ServerSocket;
 extern SOCKET connectedSocket;
-extern SOCKADDR_IN addr;
-
 
 extern int GPIBWrite(int ud, char* cmd);
-extern int GPIBRead(int ud, char* message);
+//extern int GPIBRead(int ud, char* message);
 extern int initKeithley(void);
+extern int KeithClose(void);
 extern int KeithOn( void );
 extern int KeithOff( void );
-extern int KeithSetVoltage( double );
+
+extern int KeithSweepVoltage( float, int );
+extern int KeithSetVoltage( float );
+extern float KeithGetVoltage( void );
 
 extern char scriptbuf[1024*1024*10];
 extern int scriptbuflen;

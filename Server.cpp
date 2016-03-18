@@ -5,6 +5,7 @@
 //#include <winsock2.h>
 
 #include <windows.h>
+#include <process.h>    /* _beginthread, _endthread */
 #include <direct.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,16 +37,38 @@ int startWinsock(void);
 int closeWinsock(void);
 int connectWinsock(void);
 int readWinsock(void);
+int readAbort(void);
+unsigned int __stdcall CheckKey( void *dummy );
 //int writeWinsock(std::string);
 template<typename C>
 void split(string const&, char const*, C&);
 
+bool b_shutdown = false;     /* Global repeat flag */
+bool b_abort = false;
+volatile bool running = true;
 
 long rc;
-SOCKET acceptSocket;
+SOCKET ServerSocket;
 SOCKET connectedSocket;
-SOCKADDR_IN addr;
+//SOCKADDR_IN addr;
 
+/* CheckKey - Thread to wait for a keystroke, then clear repeat flag. */
+unsigned int __stdcall  CheckKey( void *dummy )
+{
+	int ch;
+	do
+	{
+		printf( "Type 'A' to abort or 'X' for shutdown\n" );
+		ch = _getch();
+		if (ch == 'A')
+		{
+			b_abort = true;
+			//Scriptabort
+		}
+	} while( (ch != 'X') && running);
+	b_shutdown = true;    /* _endthread implied */
+	return 0;
+}
 
 template<typename C>
 void split(string const& s, char const* d, C& ret)
@@ -92,16 +115,22 @@ void split(string const& s, char const* d, C& ret)
 
 extern "C" __declspec(dllexport) int macroMain()
 {
+	b_shutdown = false;
+	b_abort = false;
+	
 	initKeithley();
-	
+	//HANDLE hThread = (HANDLE)_beginthread( &CheckKey, 0, 0 );
+	//HANDLE hThread = (HANDLE)_beginthreadex(0, 0, &CheckKey, 0, 0, 0);
 	LITHO_BEGIN;
-	
-	std::cout << "1 StageGetPosition X: " << StageGetPosition(0) <<std::endl; //X
-	std::cout << "1 StageGetPosition Y: " << StageGetPosition(1) <<std::endl; //Y
-	std::cout << "1 StageGetPosition Z: " << StageGetPosition(2) <<std::endl; //Z
 
+	//std::cout << "1 StageGetPosition X: " << StageGetPosition(0) <<std::endl; //X
+	//std::cout << "1 StageGetPosition Y: " << StageGetPosition(1) <<std::endl; //Y
+	//std::cout << "1 StageGetPosition Z: " << StageGetPosition(2) <<std::endl; //Z
+	//return 0;
 
 	if (1) {
+		
+
 		LithoDisplayStatusBox();
 	
 		bool stat = IsEngaged();
@@ -111,37 +140,65 @@ extern "C" __declspec(dllexport) int macroMain()
 		}
 		LithoCenterXY();
 		//LithoPause(0.00000000001);
-	
-		initWinsock();
-		startWinsock();
-		connectWinsock();
-
-
+		
 		int ret = 0;
-		bool running = true;
-		while (running)
+		ret = initWinsock();
+		std::cout << "INIT: " << ret <<std::endl;
+		if (ret == 0)
 		{
-			if (ret == 1)
+			//printf("16...\n");
+			//startWinsock();
+			ret = connectWinsock();
+		
+			if (ret == 0)
 			{
-				connectWinsock();
-				//running = false;
-				//break;
-			} 
-			ret = readWinsock();
-			if (ret == 2)
-			{
-				running = false;
-				break;
+				printf("1...\n");
+				ret = 0;
+				while (running)
+				{
+					if (b_shutdown == true)
+					{
+						printf("22...\n");
+						break;
+					}
+					printf("2...\n");
+					if (ret == 1)
+					{
+						connectWinsock();
+						printf("3...\n");
+						//running = false;
+						//break;
+					} 
+					printf("4...\n");
+					ret = readWinsock();
+					printf("5...\n");
+					if (ret == 2)
+					{
+						printf("6...\n");
+						running = false;
+						break;
+					}
+					if (ret == 1)
+					{
+						printf("14...\n");
+						//running = false;
+						//break;
+					}
+					printf("7...\n");
+				}
 			}
+			closeWinsock();
 		}
-
-
-		closeWinsock();
+		printf("8...\n");
 	}
+	printf("9...\n");
 	
 	LITHO_END;
+	//CloseHandle(hThread);
+	printf("10...\n");
 	std::cout  << std::endl << "END" << std::endl<< std::endl;
-	KeithSetVoltage( 0.0 );
+	//KeithSetVoltage( float(0.0) );
+	KeithClose();
 	return 0;
 }
 
@@ -153,20 +210,20 @@ void ParseScript()
 	printf("\nParsing Script...\n");
 	writeWinsock("\nParsing Script...\n");
 	printf("\n\n");
-/*
-	std::istringstream file(scriptbuf);
-	std::string fline;
-*/
-	
+
 	std::istringstream line(scriptbuf);      //make a stream for the line itself
 	std::string str;
 	
-
-		
-	//if (cmd[0] == "SketchScript")
-
 	while (std::getline(line,str))
 	{
+		if (b_abort == true)
+		{
+			printf("21...\n");
+			b_abort = false;
+			writeWinsock("ABORT");
+			break;
+			return;
+		}
 		//std::vector<std::string> cmd = split(str, '\t');
 		char const* delims = " \t";
 		
@@ -207,12 +264,21 @@ void ParseScript()
 			// std::cout << cmd << ":" << x << " " << y << " " << rate << std::endl;
 
 		}
+		//else if (cmd[0] == "vtip_swp")
+		//{
+		//	double vtip;
+		//	vtip = stod(cmd[1]);
+		//	//line >> vtip;       //now read the whitespace-separated floats
+		//	KeithSweepVoltage(vtip,30);
+		//	//LithoSet(lsAna2, vtip);
+		//}
 		else if (cmd[0] == "vtip")
 		{
-			double vtip;
-			vtip = stod(cmd[1]);
+			float vtip;
+			vtip = stof(cmd[1]);
 			//line >> vtip;       //now read the whitespace-separated floats
-			KeithSetVoltage(vtip);
+			//KeithSetVoltage(vtip);
+			KeithSweepVoltage(vtip,30);
 			//LithoSet(lsAna2, vtip);
 		}
 		else if (cmd[0] == "trigger")
@@ -265,9 +331,12 @@ void ParseScript()
 		}
 		else if (cmd[0] == "pause")
 		{
-			double value;
-			value = stod(cmd[2]);
+			float value;
+			value = stof(cmd[1]);
 			//line >> value;
+			
+			std::cout << cmd[0] << " " << value << "s" << std::endl;
+			//Sleep(value);
 			LithoPause(value);
 		}
 		else if (cmd[0] == "wait")
@@ -284,21 +353,16 @@ void ParseScript()
 		else if (cmd[0] == "SketchScript")
 		{
 			//continue;
-			//std::cout << cmd[0] << cmd[1] << std::endl;
-			/*std::string rest;
-			std::getline(line, rest);*/
 		}
 		else if (cmd[0] == "#")
 		{
-			//continue;
-			/*std::string rest;
-			std::getline(line, rest);*/
-			//std::cout << "comment " << cmd[0] << ":" << rest << std::endl;
+			if (readAbort() != 0) {
+				writeWinsock("ABORT");
+				return;
+			}
 		}
 		else
 		{
-			//std::string rest;
-			//std::getline(line, rest);
 			if (str.empty()) {
 				// empty line
 			}
@@ -307,4 +371,6 @@ void ParseScript()
 			}
 		}
 	}
+
+	writeWinsock("Ready");
 }

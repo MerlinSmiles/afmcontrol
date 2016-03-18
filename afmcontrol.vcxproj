@@ -46,7 +46,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.;D:\INCLUDE;C:\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;C:\Program Files\IVI Foundation\VISA\WinNT\Include;D:\INCLUDE;C:\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -87,6 +87,7 @@
     <Object Include="C:\Program Files\National Instruments\Shared\ExternalCompilerSupport\C\lib32\msvc\gpib-32.obj" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="C:\Program Files\IVI Foundation\VISA\WinNT\lib\msc\visa32.lib" />
     <Library Include="D:\INCLUDE\Z.lib" />
   </ItemGroup>
   <ItemGroup>

@@ -37,6 +37,9 @@
     <Library Include="D:\INCLUDE\Z.lib">
       <Filter>Resource Files</Filter>
     </Library>
+    <Library Include="C:\Program Files\IVI Foundation\VISA\WinNT\lib\msc\visa32.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".\my_globals.h">
