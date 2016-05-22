@@ -37,7 +37,7 @@ int writeWinsock(std::string);
 void ParseFile(LPTSTR);
 
 
-const int sockMaxClients=2;
+const int sockMaxClients = 5;
 int nClient=0;
 SOCKET Socket[sockMaxClients-1];
 int socketsInUse[sockMaxClients-1];
@@ -45,8 +45,8 @@ bool serverRunning = true;
 SOCKADDR_IN SockAddr;
 sockaddr sockAddrClient;
 
-char scriptbuf[1024*1024*10];
-int scriptbuflen = 1024*1024*10;
+char scriptbuf[1024*1024*100];
+int scriptbuflen = 1024*1024*100;
 
 void myBeep( void ){
     Beep (330,100);Sleep(10);
@@ -169,23 +169,23 @@ int connectWinsock(void)
 	//		printf("New Connection accepted!\n");
 	//	}
 	//}
-	
+	/*
 	for(int n=0;n<=sockMaxClients;n++)
 	{
 		closesocket(Socket[n]);
-	}
+	}*/
+	
+	closesocket(Socket[0]);
 	while( true ){
-		if(nClient < sockMaxClients){
-			int size=sizeof(SockAddr);
-			Socket[nClient]=accept(ServerSocket,&sockAddrClient,&size);
-			if(Socket[nClient] != SOCKET_ERROR){
-				std::cout << "> Client connected, assigned slot #"<<nClient<<"\n";
-				socketsInUse[nClient] = 1;
-				nClient++;
-				return 0;
-			}
+		int size=sizeof(SockAddr);
+		Socket[0]=accept(ServerSocket,&sockAddrClient,&size);
+		if(Socket[0] != SOCKET_ERROR){
+			std::cout << "> Client connected\n";
+			socketsInUse[0] = 1;
+			return 0;
 		}
-		Sleep(100);
+		std::cout << Socket[0];
+		Sleep(500);
 	}
 	return 0;
 }
@@ -230,84 +230,86 @@ int readWinsock(void)
 		{
 			Beep(i,20);
 		}*/
-		for(int n=0;n<=sockMaxClients;n++)
-		{
-			if(socketsInUse[n] == 1){
-				rc = recv(Socket[n],scriptbuf,scriptbuflen,0);
-				//if(strlen(scriptbuf) != 0){
-					scriptbuf[rc] = '\0';
+		if(socketsInUse[0] == 1){
+			rc = recv(Socket[0],scriptbuf,scriptbuflen,0);
+			//if(strlen(scriptbuf) != 0){
+				scriptbuf[rc] = '\0';
 			
-					if(rc==0)
-					{
-					  printf("Client closed connection..\n");
-					  //return 1;
+				if(rc==0)
+				{
+					printf("Client closed connection..\n");
+					//return 1;
+				}
+				if(rc==SOCKET_ERROR)
+				{
+					int ierr= WSAGetLastError();
+					if (ierr==WSAEWOULDBLOCK) {  // currently no data available
+						//Sleep(50);  // wait and try again
+						continue; 
 					}
-					if(rc==SOCKET_ERROR)
-					{
-						int ierr= WSAGetLastError();
-						if (ierr==WSAEWOULDBLOCK) {  // currently no data available
-							//Sleep(50);  // wait and try again
-							continue; 
-						}
-						printf("Error: recv, code: %d\n",ierr);
-						return 1;
-					}
-					scriptbuf[rc] = '\0';
+					printf("Error: recv, code: %d\n",ierr);
+					return 1;
+				}
+				scriptbuf[rc] = '\0';
 
-					std::istringstream line(scriptbuf);      //make a stream for the line itself
-					std::string str;
-					getline (line,str);
+				std::istringstream line(scriptbuf);      //make a stream for the line itself
+				std::string str;
+				getline (line,str);
 		
-					char const* delims = " \t";
-					vector<std::string> cmd;
-					split(str, delims, cmd);
+				char const* delims = " \t";
+				vector<std::string> cmd;
+				split(str, delims, cmd);
 
 		
-					if (cmd[0] == "SketchScript")
-					{
-						long slen = stoi(cmd[1]);			
-						if (rc == slen+str.size()+1) {
-							ParseScript();
-							myBeep2();
-						}
-					} else if (cmd[0] == "sketch")
-					{
-						std::cout << "DEPREACHED" << cmd[0] << std::endl;
-					} else if (cmd[0] == "ClientClose")
-					{
-						std::cout << "Client Left: " << cmd[0] << std::endl;
-						return 1;
-					} else if (cmd[0] == "shutdown")
-					{
-						std::cout << "\n\nSHUTDOWN\n" << std::endl;
-						return 2;
-					} else if (cmd[0] == "abort")
-					{
-						std::cout << cmd[0] << std::endl;
-					} else if (cmd[0] == "StageUnload")
-					{
-						StageUnload();
-					} else if (cmd[0] == "StageLoad")
-					{
-						StageLoad();
-					} else if (cmd[0] == "Capture")
-					{
-						DoCaptureDown();
-					} else if (cmd[0] == "FrameUp")
-					{
-						DoCaptureUp();
-					} else if (cmd[0] == "FrameDown")
-					{
-						DoCaptureDown();
-					} else if (cmd[0] == "Engage")
-					{
-						DoEngage();
-					} else if (cmd[0] == "Withdraw")
-					{
-						DoWithdraw();
+				if (cmd[0] == "SketchScript")
+				{
+					std::cout << "SketchScript: " << cmd[0] << std::endl;
+					Sleep(1000);
+					long slen = stoi(cmd[1]);			
+					std::cout << "Parse: " << rc << std::endl;
+					std::cout << "Parse: " << slen << std::endl;
+					if (rc == slen+str.size()+1) {
+						std::cout << "Parse: " << std::endl;
+						ParseScript();
+						myBeep2();
 					}
-				//}
-			}
+				} else if (cmd[0] == "sketch")
+				{
+					std::cout << "DEPREACHED" << cmd[0] << std::endl;
+				} else if (cmd[0] == "ClientClose")
+				{
+					std::cout << "Client Left: " << cmd[0] << std::endl;
+					return 1;
+				} else if (cmd[0] == "shutdown")
+				{
+					std::cout << "\n\nSHUTDOWN\n" << std::endl;
+					return 2;
+				} else if (cmd[0] == "abort")
+				{
+					std::cout << cmd[0] << std::endl;
+				} else if (cmd[0] == "StageUnload")
+				{
+					StageUnload();
+				} else if (cmd[0] == "StageLoad")
+				{
+					StageLoad();
+				} else if (cmd[0] == "Capture")
+				{
+					DoCaptureDown();
+				} else if (cmd[0] == "FrameUp")
+				{
+					DoCaptureUp();
+				} else if (cmd[0] == "FrameDown")
+				{
+					DoCaptureDown();
+				} else if (cmd[0] == "Engage")
+				{
+					DoEngage();
+				} else if (cmd[0] == "Withdraw")
+				{
+					DoWithdraw();
+				}
+			
 		}
 	}while(rc!=WSAEWOULDBLOCK);
 	
@@ -323,49 +325,46 @@ int readAbort(void)
 	{
 		Beep(i,20);
 	}*/
-	for(int n=0;n<=sockMaxClients;n++)
-	{
-		if(socketsInUse[n] == 1){
-			rc = recv(Socket[n],scriptbuf,scriptbuflen,0);
-			//if(strlen(scriptbuf) != 0){
-				scriptbuf[rc] = '\0';
+	if(socketsInUse[0] == 1){
+		rc = recv(Socket[0],scriptbuf,scriptbuflen,0);
+		//if(strlen(scriptbuf) != 0){
+			scriptbuf[rc] = '\0';
 			
-				if(rc==0)
-				{
-					printf("Client closed connection..\n");
-					return 0;
-					//return 1;
+			if(rc==0)
+			{
+				printf("Client closed connection..\n");
+				return 0;
+				//return 1;
+			}
+			if(rc==SOCKET_ERROR)
+			{
+				int ierr= WSAGetLastError();
+				if (ierr==WSAEWOULDBLOCK) {
+					return 0; 
 				}
-				if(rc==SOCKET_ERROR)
-				{
-					int ierr= WSAGetLastError();
-					if (ierr==WSAEWOULDBLOCK) {
-						return 0; 
-					}
-					printf("Error: recv, code: %d\n",ierr);
-					return 0;
-				}
-				scriptbuf[rc] = '\0';
+				printf("Error: recv, code: %d\n",ierr);
+				return 0;
+			}
+			scriptbuf[rc] = '\0';
 	
-				std::istringstream line(scriptbuf);      //make a stream for the line itself
-				std::string str;
-				getline (line,str);
+			std::istringstream line(scriptbuf);      //make a stream for the line itself
+			std::string str;
+			getline (line,str);
 		
-				char const* delims = " \t";
-				vector<std::string> cmd;
-				split(str, delims, cmd);
+			char const* delims = " \t";
+			vector<std::string> cmd;
+			split(str, delims, cmd);
 
 		
-				if (cmd[0] == "shutdown")
-				{
-					std::cout << "\n\nSHUTDOWN\n" << std::endl;
-					return 2;
-				} else if (cmd[0] == "abort")
-				{
-					return 1;
-				}
-				return 0;
-		}
+			if (cmd[0] == "shutdown")
+			{
+				std::cout << "\n\nSHUTDOWN\n" << std::endl;
+				return 2;
+			} else if (cmd[0] == "abort")
+			{
+				return 1;
+			}
+			return 0;
 	}
 	return 0;
 }
@@ -375,22 +374,17 @@ int writeWinsock(std::string data)
 	char buf2[300];	
 	const char *buf = data.c_str();
 	sprintf_s(buf2,"%s\n",buf);
-	for(int n=0;n<=sockMaxClients;n++){
-		if(socketsInUse[n] == 1){
-			if(strlen(buf2) != 0){
-				send(Socket[n],buf2,strlen(buf2),0);
-			}
+	if(socketsInUse[0] == 1){
+		if(strlen(buf2) != 0){
+			send(Socket[0],buf2,strlen(buf2),0);
 		}
 	}
-  return 0;
+    return 0;
 }
 
 int closeWinsock(void)
 {
-	for(int n=0;n<=sockMaxClients;n++)
-	{
-		closesocket(Socket[n]);
-	}
+	closesocket(Socket[0]);
 	closesocket(ServerSocket);
 	closesocket(connectedSocket);
 	WSACleanup();
