@@ -46,7 +46,8 @@ SOCKADDR_IN SockAddr;
 sockaddr sockAddrClient;
 
 char scriptbuf[1024*1024*100];
-int scriptbuflen = 1024*1024*100;
+char socketbuf[1024];
+int scriptbuflen = 1024;
 
 void myBeep( void ){
     Beep (330,100);Sleep(10);
@@ -263,14 +264,54 @@ int readWinsock(void)
 		
 				if (cmd[0] == "SketchScript")
 				{
-					std::cout << "SketchScript: " << cmd[0] << std::endl;
-					Sleep(1000);
+					std::cout << "SketchScript: " << std::endl;
 					long slen = stoi(cmd[1]);			
-					std::cout << "Parse: " << rc << std::endl;
-					std::cout << "Parse: " << slen << std::endl;
-					if (rc == slen+str.size()+1) {
+					//std::cout << "Parse1 rc:   " << rc << std::endl;
+					std::cout << "script len:  " << slen+str.size()+1 << std::endl;
+					
+					Sleep(1000);
+					
+					long nToRead = slen;
+					long nRead = rc;
+					while (nRead <= slen+str.size())
+					{
+						//int bufferSize = min(1024 , nToRead);
+						rc = recv(Socket[0],socketbuf,scriptbuflen,0);
+						
+						//std::cout << "rcode2: " << nToRead << std::endl;
+						//std::cout << "rcode3: " << nToRead-rc << std::endl;
+                        
+						if(rc==SOCKET_ERROR)
+						{
+							int ierr= WSAGetLastError();
+							if (ierr==WSAEWOULDBLOCK) {  // currently no data available
+								//Sleep(50);  // wait and try again
+								continue; 
+							}
+							printf("Error: recv, code: %d\n",ierr);
+							return 1;
+						}
+						
+						//std::cout << "rcode1: " << rc << std::endl;
+						//socketbuf[rc] = '\0';
+
+						char *ptr = scriptbuf + nRead;  
+						memcpy( ptr, socketbuf, rc);
+						nRead += rc;
+						nToRead -= rc;
+					} // while (nToRead >= 0);
+					
+					//std::cout << "Parse3: " << nRead << std::endl;
+					scriptbuf[nRead] = '\0';
+					//
+					//std::cout << "Parse2 slen:  " << slen << std::endl;
+					//std::cout << "Parse2 slen:  " << slen << std::endl;
+					std::cout << "script read: " << nRead << std::endl;
+
+
+					if (nRead == slen+str.size()+1) {
 						std::cout << "Parse: " << std::endl;
-						ParseScript();
+						//ParseScript();
 						myBeep2();
 					}
 				} else if (cmd[0] == "sketch")
