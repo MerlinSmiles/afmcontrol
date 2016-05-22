@@ -109,6 +109,8 @@ int initKeithley(void){
 	KeithWrite("*RST\n");
 	KeithOn();
 	KeithWrite(":SOUR:FUNC VOLT\n");
+	KeithWrite(":SOUR:VOLT:RANG 210\n");
+	KeithWrite(":SOUR:VOLT:AUTO 0\n");
 	KeithSetVoltage(0);
 	//float val = KeithGetVoltage();
 	//printf("Here is the data: %f\n", val);

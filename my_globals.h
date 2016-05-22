@@ -55,7 +55,7 @@ extern int KeithSweepVoltage( float, int );
 extern int KeithSetVoltage( float );
 extern float KeithGetVoltage( void );
 
-extern char scriptbuf[1024*1024*100];
+extern char scriptbuf[1024*1024*10];
 extern int scriptbuflen;
 
 //extern std::vector<std::string> split(const std::string &s, char delim);

@@ -45,7 +45,7 @@ bool serverRunning = true;
 SOCKADDR_IN SockAddr;
 sockaddr sockAddrClient;
 
-char scriptbuf[1024*1024*100];
+char scriptbuf[1024*1024*10];
 char socketbuf[1024];
 int scriptbuflen = 1024;
 
@@ -311,7 +311,7 @@ int readWinsock(void)
 
 					if (nRead == slen+str.size()+1) {
 						std::cout << "Parse: " << std::endl;
-						//ParseScript();
+						ParseScript();
 						myBeep2();
 					}
 				} else if (cmd[0] == "sketch")
